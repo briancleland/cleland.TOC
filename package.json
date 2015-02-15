@@ -1,0 +1,12 @@
+{
+    "name": "cleland.TOC",
+    "title": "Table of Contents",
+    "description": "Show TOC with word count.",
+    "homepage": "https://github.com/cfjedimaster/Word-Count-Extension",
+    "version": "1.0.0",
+    "author": "Brian Cleland",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.34.0"
+    }
+}

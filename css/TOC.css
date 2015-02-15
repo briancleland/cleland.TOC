@@ -1,0 +1,103 @@
+.wordfreqs-panel p {
+  color: blue;
+  font-weight: bold;
+}
+#word-count,
+#word-freqs {
+  background: #ddd;
+  padding: 10px;
+  border: 1px solid #ccc;
+  float: left;
+  margin: 10px;
+}
+#word-freqs {
+  width: 50em;
+}
+.bottom-panel {
+  overflow: scroll;
+  user-select: all;
+  -webkit-user-select: all;
+}
+#toc-panel {
+  padding: 0 5px 0 15px;
+  background: #eee;
+}
+#toc-panel h3 {
+  font-size: 80%;
+  margin: 0;
+  line-height: 24px;
+}
+#toc-close-button {
+  font-size: 1.2em;
+  font-weight: bold;
+  position: relative;
+  float: right;
+  color: #888;
+  text-decoration: none;
+  font-family: monospace;
+}
+.section-heading .heading {
+  font-weight: bold;
+}
+td {
+  background: #eee;
+  border-bottom: 1px solid #ddd;
+  font-size: 80%;
+}
+.numwords {
+  text-align: right;
+  /*  color: #446fbd;*/
+  /*  width: 3em;*/
+  /*  background: #ddd;*/
+  border-left: 1em solid transparent;
+  padding-right: 5px;
+}
+.zerowords {
+  /*  background: #F3E2A9;*/
+}
+.sparkline {
+  height: 1em;
+  padding-left: 5px;
+  position: relative;
+}
+.sparkline span {
+  height: 1em;
+  background: #888;
+  display: block;
+  float: left;
+  margin-left: 1px;
+}
+.section-heading .sparkline span {
+  /*  background: #ccc;*/
+}
+.sparkline span.quote {
+  background: cornflowerblue;
+}
+.sparkline span.italic {
+  background: salmon;
+}
+.sparkline span.image {
+  background: orange;
+}
+.sparkline span.bullet {
+  background: green;
+}
+.expected-length {
+  top: 5px;
+  width: 100px;
+  position: absolute;
+  background: black !important;
+  opacity: 0.1;
+}
+.section-heading .expected-length {
+  width: 20px;
+}
+/* Toolbar icon */
+
+#toc-toolbar-icon {
+  color: #bbb;
+  padding-top: 9px;
+  height: 16px !important;
+  text-decoration: none !important;
+  /*  background: url("icons/toc-icon.svg") no-repeat 0 0;*/
+}
