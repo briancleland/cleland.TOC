@@ -63,25 +63,21 @@ define(function (require, exports, module) {
     return sparkline;
   }
 
-  function getTopicSentences(contents) {
-    var topicSentences = [];
-    var paragraphs = contents.split("\n");
-    paragraphs.forEach(function (paragraph, index) {
-      var sentence = paragraph.substr(0, paragraph.search(/\D\./) + 2);
-      if (sentence != "") {
-        if (sentence.length > 1) {
-          topicSentences[index] = sentence;
-        } else {
-          if (sentence == "#") {
-            topicSentences[index] = paragraph;
-          }
+  function getHeadings(contents) {
+    var headings = contents.match(/##[^\n]*?\n/g);
+    if (headings) {
+      for (var i = 0; i < headings.length; i++) {
+        headings[i] = headings[i].replace(/##([^#]*)/, "<b>$1</b>");
+        if (headings[i + 1] && headings[i + 1].indexOf("###") != -1) {
+          headings[i] = headings[i] + " - " + headings[i + 1].replace(/###/, "");
+          headings.splice(i + 1, 1);
         }
       }
-    });
-    return topicSentences;
+    }
+    return headings;
   }
 
-  function createTocDocument(allFiles) {
+  function createToc(allFiles) {
     var fileList = "";
     var mergedContent = "";
     var totalWords = 0;
@@ -111,11 +107,10 @@ define(function (require, exports, module) {
     newContent += fileList;
     newContent += "<td>TOTAL WORDS</td><td class='numwords'>" + totalWords + "</td>";
     newContent += "</table>";
-    panel.show();
     $("#TOC").html(newContent);
   }
 
-  function createSummaryDocument(allFiles) {
+  function createSummary(allFiles) {
     var summary = "";
     allFiles.sort(function (a, b) {
       return a.fileName.localeCompare(b.fileName)
@@ -127,15 +122,67 @@ define(function (require, exports, module) {
         summary += "<h2>" + file.fileName + "</h2>";
       }
       summary += "<ul>";
-      var topicSentences = getTopicSentences(file.fileContents);
-      topicSentences.forEach(function (sentence) {
-        summary += "<li>" + sentence + "</li>";
-      });
+      var headings = getHeadings(file.fileContents);
+      if (headings) {
+        headings.forEach(function (heading) {
+          summary += "<li>" + heading + "</li>";
+        });
+      }
       summary += "</ul>";
     });
-    var summaryTitle = "<br><br><br><h3>SUMMARY OF CONTENTS</h3>";
-    panel.show();
-    $("#TOC").append(summaryTitle + summary);
+    $("#summary").html(summary);
+  }
+
+  
+  function createNode(allFiles, sectionNumber) {
+//    var thisNode = "";
+//    // get subsections
+//    allFiles.forEach(function (file) {
+//      var  regex = RegExp.new("^" + sectionNumber + "\.\d");
+//      if file.fileName.match(regex) {
+//        thisNode += "[" + file.fileName + " | ";
+//        var headings = getHeadings(file.fileContents);
+//        if (headings) {
+//          headings.forEach(function (heading) {
+//            diagram += heading + " | ";
+//          });
+//        }
+//       
+//      } 
+//      thisNode += 
+//    }
+  }
+  
+  function createDiagram(allFiles) {
+    var diagram = "";
+    allFiles.sort(function (a, b) {
+      return a.fileName.localeCompare(b.fileName)
+    });
+    allFiles.forEach(function (file) {
+      if (file.fileName.charAt(2) == " ") {
+        diagram += "[" + file.fileName + " |<br>";
+        var sectionNumber = file.fileName[0];
+        allFiles.forEach(function (file2) {
+          if (file2.fileName.charAt(2) != " " && file2.fileName[0] == sectionNumber) {
+            diagram += file2.fileName + " | ";
+          }
+        });
+        diagram += "]<br>";
+        // iterate thru all files 
+        // get files which match higher level heading
+      } else {
+//        diagram += "[" + file.fileName + "<br>";
+      }
+//      diagram += " | ";
+//      var headings = getHeadings(file.fileContents);
+//      if (headings) {
+//        headings.forEach(function (heading) {
+//          diagram += heading + " | ";
+//        });
+//      }
+//      diagram += "]<br>";
+    });
+    $("#diagram").html(diagram);
   }
 
   function readFiles(files) {
@@ -158,25 +205,23 @@ define(function (require, exports, module) {
       }
     });
     var fileReadsBatch = new Batch(batchFunctions, function (allFiles) {
-      createTocDocument(allFiles);
-      createSummaryDocument(allFiles);
+      createToc(allFiles);
+      createSummary(allFiles);
+      createDiagram(allFiles);
     });
     fileReadsBatch.execute();
   }
 
 
   function _handleFileToc() {
-    if (panel.isVisible()) {
-      panel.hide();
-    } else {
-      var editor = EditorManager.getCurrentFullEditor();
-      var text = editor.document.getText();
-      ProjectManager.getAllFiles().then(function (files) {
-        readFiles(files);
-      }, function (err) {
-        console.log(err);
-      });
-    }
+    panel.show();
+    var editor = EditorManager.getCurrentFullEditor();
+    var text = editor.document.getText();
+    ProjectManager.getAllFiles().then(function (files) {
+      readFiles(files);
+    }, function (err) {
+      console.log(err);
+    });
   }
 
   CommandManager.register("Project TOC", DO_TOC, _handleFileToc);
@@ -191,11 +236,27 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "css/TOC.css");
     ExtensionUtils.loadStyleSheet(module, "css/fa/css/font-awesome.css");
     panel = PanelManager.createBottomPanel(DO_TOC, $(panelHtml), 300);
-    $("#toc-close-button").click(function () {
+    $("#toc-panel-close").click(function () {
       panel.hide()
     });
-    tocIcon.click(function(){
+    tocIcon.click(function () {
       _handleFileToc();
+    });
+    $("#toc-panel #show-toc").click(function () {
+      _handleFileToc();
+      $("#toc-panel #summary").hide();
+      $("#toc-panel #TOC").show();
+    });
+    $("#toc-panel #show-summary").click(function () {
+      _handleFileToc();
+      $("#toc-panel #TOC").hide();
+      $("#toc-panel #summary").show();
+    });
+    $("#toc-panel #show-diagram").click(function () {
+      _handleFileToc();
+      $("#toc-panel #TOC").hide();
+      $("#toc-panel #summary").hide();
+      $("#toc-panel #diagram").show();
     });
   });
 

@@ -1,32 +1,29 @@
-.wordfreqs-panel p {
-  color: blue;
-  font-weight: bold;
-}
-#word-count,
-#word-freqs {
-  background: #ddd;
-  padding: 10px;
-  border: 1px solid #ccc;
-  float: left;
-  margin: 10px;
-}
-#word-freqs {
-  width: 50em;
-}
 .bottom-panel {
   overflow: scroll;
   user-select: all;
   -webkit-user-select: all;
 }
+
 #toc-panel {
-  padding: 0 5px 0 15px;
   background: #eee;
 }
+
+#toc-panel h1 {
+  font-size: 150%;
+  background: #ddd;
+  padding: 0px 10px;
+}
+
+#toc-panel h2 {
+  font-size: 120%;
+}
+
 #toc-panel h3 {
   font-size: 80%;
   margin: 0;
   line-height: 24px;
 }
+
 #toc-close-button {
   font-size: 1.2em;
   font-weight: bold;
@@ -36,30 +33,41 @@
   text-decoration: none;
   font-family: monospace;
 }
+
+#TOC {
+  margin: 45px 20px;
+}
+
 .section-heading .heading {
   font-weight: bold;
 }
+
 td {
-  background: #eee;
+/*  background: #eee;*/
   border-bottom: 1px solid #ddd;
   font-size: 80%;
 }
+
 .numwords {
   text-align: right;
   /*  color: #446fbd;*/
   /*  width: 3em;*/
   /*  background: #ddd;*/
+  
   border-left: 1em solid transparent;
   padding-right: 5px;
 }
+
 .zerowords {
   /*  background: #F3E2A9;*/
 }
+
 .sparkline {
   height: 1em;
   padding-left: 5px;
   position: relative;
 }
+
 .sparkline span {
   height: 1em;
   background: #888;
@@ -67,21 +75,27 @@ td {
   float: left;
   margin-left: 1px;
 }
+
 .section-heading .sparkline span {
   /*  background: #ccc;*/
 }
+
 .sparkline span.quote {
   background: cornflowerblue;
 }
+
 .sparkline span.italic {
   background: salmon;
 }
+
 .sparkline span.image {
   background: orange;
 }
+
 .sparkline span.bullet {
   background: green;
 }
+
 .expected-length {
   top: 5px;
   width: 100px;
@@ -89,6 +103,7 @@ td {
   background: black !important;
   opacity: 0.1;
 }
+
 .section-heading .expected-length {
   width: 20px;
 }
@@ -100,4 +115,47 @@ td {
   height: 16px !important;
   text-decoration: none !important;
   /*  background: url("icons/toc-icon.svg") no-repeat 0 0;*/
+}
+
+#toc-menu {
+  position: fixed;
+  width: 100%;
+  height: 20px;
+  background: #999;
+  border-bottom: 1px solid #ccc;
+  z-index: 10;
+  padding: 5px;
+}
+
+#toc-panel-close {
+  cursor: pointer;
+  position: fixed;
+  font-size: 100%;
+  color: #eee;
+  right: 40px;
+  margin-top: 2px;
+}
+
+#toc-panel #show-toc,
+#toc-panel #show-summary,
+#toc-panel #show-diagram {
+  border: 1px solid #aaa;
+  background: #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 90%;
+  text-align: center;
+  float: left;
+  margin-left: 5px;
+  padding: 0 10px;
+}
+
+#toc-panel #summary {
+  margin: 45px 20px;
+  display: none;
+}
+
+#toc-panel #diagram {
+  margin: 45px 20px;
+  display: none;
 }
