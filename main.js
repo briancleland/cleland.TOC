@@ -4,7 +4,8 @@
 define(function (require, exports, module) {
   'use strict';
 
-  require("batch");
+  require("lib/batch");
+  var _merge = require("lib/merge");
 
   var
     CommandManager = brackets.getModule("command/CommandManager"),
@@ -107,7 +108,7 @@ define(function (require, exports, module) {
     newContent += fileList;
     newContent += "<td>TOTAL WORDS</td><td class='numwords'>" + totalWords + "</td>";
     newContent += "</table>";
-    $("#TOC").html(newContent);
+    $("#toc").html(newContent);
   }
 
   function createSummary(allFiles) {
@@ -233,30 +234,35 @@ define(function (require, exports, module) {
     });
     var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
     viewMenu.addMenuItem(DO_TOC);
-    ExtensionUtils.loadStyleSheet(module, "css/TOC.css");
+    ExtensionUtils.loadStyleSheet(module, "css/overview.css");
     ExtensionUtils.loadStyleSheet(module, "css/fa/css/font-awesome.css");
     panel = PanelManager.createBottomPanel(DO_TOC, $(panelHtml), 300);
-    $("#toc-panel-close").click(function () {
+    $("#overview-panel-close").click(function () {
       panel.hide()
     });
     tocIcon.click(function () {
       _handleFileToc();
     });
-    $("#toc-panel #show-toc").click(function () {
+    $("#overview-panel #show-toc").click(function () {
       _handleFileToc();
-      $("#toc-panel #summary").hide();
-      $("#toc-panel #TOC").show();
+      $("#overview-panel #toc").show();
+      $("#overview-panel #summary").hide();
+      $("#overview-panel #diagram").hide();
     });
-    $("#toc-panel #show-summary").click(function () {
+    $("#overview-panel #show-summary").click(function () {
       _handleFileToc();
-      $("#toc-panel #TOC").hide();
-      $("#toc-panel #summary").show();
+      $("#overview-panel #toc").hide();
+      $("#overview-panel #summary").show();
+      $("#overview-panel #diagram").hide();
     });
-    $("#toc-panel #show-diagram").click(function () {
+    $("#overview-panel #show-diagram").click(function () {
       _handleFileToc();
-      $("#toc-panel #TOC").hide();
-      $("#toc-panel #summary").hide();
-      $("#toc-panel #diagram").show();
+      $("#overview-panel #toc").hide();
+      $("#overview-panel #summary").hide();
+      $("#overview-panel #diagram").show();
+    });
+    $("#overview-panel #merge-files").click(function () {
+      _merge.mergeFiles();
     });
   });
 
