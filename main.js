@@ -224,7 +224,7 @@ define(function (require, exports, module) {
     });
   }
 
-  CommandManager.register("Project TOC", DO_TOC, _handleFileToc);
+  CommandManager.register("Project Overview", DO_TOC, _handleFileToc);
 
   AppInit.appReady(function () {
     KeyBindingManager.addBinding(DO_TOC, {

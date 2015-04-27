@@ -1,8 +1,8 @@
 {
-    "name": "cleland.TOC",
-    "title": "Table of Contents",
-    "description": "Show TOC with word count.",
-    "homepage": "https://github.com/cfjedimaster/Word-Count-Extension",
+    "name": "cleland.project-overview",
+    "title": "Project Overview",
+    "description": "Generate Table of Contents for current project assuming standard naming conventions. Includes visualisation of paragraph and word counts for each section. Also enables paragraph level summary of entire project. Nomnoml-based diagraming is work-in-progress.",
+    "homepage": "",
     "version": "1.0.0",
     "author": "Brian Cleland",
     "license": "MIT",
