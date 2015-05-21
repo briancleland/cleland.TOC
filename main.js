@@ -5,6 +5,7 @@ define(function (require, exports, module) {
   'use strict';
 
   require("lib/batch");
+  require("lib/jsrender.min");
   var _merge = require("lib/merge");
 
   var
@@ -21,6 +22,7 @@ define(function (require, exports, module) {
 
   var DO_TOC = "toc.run";
   var panelHtml = require("text!panel.html");
+  var summaryHtml = require("text!tpl/summary.html");
   var panel;
 
 
@@ -77,14 +79,31 @@ define(function (require, exports, module) {
     }
     return headings;
   }
+  
+  function parseFile(contents) {
+    var data = [];
+    var paragraphs = contents.split("\n\n");
+    paragraphs.forEach(function (paragraph) {
+      var thisPara = {};
+      paragraph = paragraph.replace(/^\s+|\s+$/g, '');
+      thisPara.words = paragraph.split(/\s+/).length;
+      var parts = paragraph.split("\n");
+      if (parts[0].charAt(0) == "#") { 
+        thisPara.head = parts.shift(); 
+        if (parts[0] && parts[0].charAt(0) == "#") { 
+          thisPara.subhead = parts.shift(); 
+        }
+      };
+      thisPara.body = parts.join("<br>");
+      data.push(thisPara);
+    });
+    return data;
+  } 
 
   function createToc(allFiles) {
     var fileList = "";
     var mergedContent = "";
     var totalWords = 0;
-    allFiles.sort(function (a, b) {
-      return a.fileName.localeCompare(b.fileName)
-    });
     allFiles.forEach(function (file) {
       var heading = file.fileName.replace(/\.md/g, "");
       if (file.fileName.charAt(2) == " ") {
@@ -113,9 +132,6 @@ define(function (require, exports, module) {
 
   function createSummary(allFiles) {
     var summary = "";
-    allFiles.sort(function (a, b) {
-      return a.fileName.localeCompare(b.fileName)
-    });
     allFiles.forEach(function (file) {
       if (file.fileName.charAt(2) == " ") {
         summary += "<h1>" + file.fileName + "</h1>";
@@ -134,58 +150,6 @@ define(function (require, exports, module) {
     $("#summary").html(summary);
   }
 
-  
-  function createNode(allFiles, sectionNumber) {
-//    var thisNode = "";
-//    // get subsections
-//    allFiles.forEach(function (file) {
-//      var  regex = RegExp.new("^" + sectionNumber + "\.\d");
-//      if file.fileName.match(regex) {
-//        thisNode += "[" + file.fileName + " | ";
-//        var headings = getHeadings(file.fileContents);
-//        if (headings) {
-//          headings.forEach(function (heading) {
-//            diagram += heading + " | ";
-//          });
-//        }
-//       
-//      } 
-//      thisNode += 
-//    }
-  }
-  
-  function createDiagram(allFiles) {
-    var diagram = "";
-    allFiles.sort(function (a, b) {
-      return a.fileName.localeCompare(b.fileName)
-    });
-    allFiles.forEach(function (file) {
-      if (file.fileName.charAt(2) == " ") {
-        diagram += "[" + file.fileName + " |<br>";
-        var sectionNumber = file.fileName[0];
-        allFiles.forEach(function (file2) {
-          if (file2.fileName.charAt(2) != " " && file2.fileName[0] == sectionNumber) {
-            diagram += file2.fileName + " | ";
-          }
-        });
-        diagram += "]<br>";
-        // iterate thru all files 
-        // get files which match higher level heading
-      } else {
-//        diagram += "[" + file.fileName + "<br>";
-      }
-//      diagram += " | ";
-//      var headings = getHeadings(file.fileContents);
-//      if (headings) {
-//        headings.forEach(function (heading) {
-//          diagram += heading + " | ";
-//        });
-//      }
-//      diagram += "]<br>";
-    });
-    $("#diagram").html(diagram);
-  }
-
   function readFiles(files) {
     var readRequest;
     var batchFunctions = [];
@@ -199,30 +163,44 @@ define(function (require, exports, module) {
             batch.done({
               fileName: fileName,
               fileContents: fileContents,
-              numWords: fileContents.replace(/(^#.*)|(^`.*)/gm, "").split(/\s+/).length - 1
+              numWords: fileContents.replace(/(^#.*)|(^`.*)/gm, "").split(/\s+/).length - 1,
+              fileData: parseFile(fileContents)
             });
           });
         });
       }
     });
     var fileReadsBatch = new Batch(batchFunctions, function (allFiles) {
+      allFiles.sort(function (a, b) {
+        return a.fileName.localeCompare(b.fileName)
+      });      
       createToc(allFiles);
       createSummary(allFiles);
-      createDiagram(allFiles);
+      jsRender(allFiles);
     });
     fileReadsBatch.execute();
   }
+    
+  function jsRender(files) {
+    $("#overview-panel").append(summaryHtml);
+    var template = $.templates("#summaryTemplate");
+    var content = template.render(files);
+    $("#jsrender").html(content);    
+    console.log(files);
+  }
 
-
-  function _handleFileToc() {
-    panel.show();
-    var editor = EditorManager.getCurrentFullEditor();
-    var text = editor.document.getText();
+  function updatePanel() {
     ProjectManager.getAllFiles().then(function (files) {
       readFiles(files);
     }, function (err) {
       console.log(err);
     });
+  }
+  
+
+  function _handleFileToc() {
+    panel.show();
+    updatePanel();
   }
 
   CommandManager.register("Project Overview", DO_TOC, _handleFileToc);
@@ -237,6 +215,7 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "css/overview.css");
     ExtensionUtils.loadStyleSheet(module, "css/fa/css/font-awesome.css");
     panel = PanelManager.createBottomPanel(DO_TOC, $(panelHtml), 300);
+    DocumentManager.on('documentSaved', updatePanel);
     $("#overview-panel-close").click(function () {
       panel.hide()
     });
@@ -245,21 +224,23 @@ define(function (require, exports, module) {
     });
     $("#overview-panel #show-toc").click(function () {
       _handleFileToc();
+      $("#overview-panel .section").hide();
       $("#overview-panel #toc").show();
-      $("#overview-panel #summary").hide();
-      $("#overview-panel #diagram").hide();
     });
     $("#overview-panel #show-summary").click(function () {
       _handleFileToc();
-      $("#overview-panel #toc").hide();
+      $("#overview-panel .section").hide();
       $("#overview-panel #summary").show();
-      $("#overview-panel #diagram").hide();
     });
     $("#overview-panel #show-diagram").click(function () {
       _handleFileToc();
-      $("#overview-panel #toc").hide();
-      $("#overview-panel #summary").hide();
+      $("#overview-panel .section").hide();
       $("#overview-panel #diagram").show();
+    });
+    $("#overview-panel #show-jsrender").click(function () {
+      _handleFileToc();
+      $("#overview-panel .section").hide();
+      $("#overview-panel #jsrender").show();
     });
     $("#overview-panel #merge-files").click(function () {
       _merge.mergeFiles();
