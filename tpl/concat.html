@@ -1,0 +1,10 @@
+<script id="concatTemplate" type="text/x-jsrender">
+  <h1>{{:fileName}}</h1>
+  <p>Number: {{:fileNumber}}</p>
+  {{for fileData}}
+    <h2>{{:head}} ({{:words}}) ({{:type}})</h2>
+    <h3>{{:subhead}}</h3>
+    <p>{{:body}}</p>
+    <hr>
+  {{/for}}
+</script>

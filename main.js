@@ -22,70 +22,33 @@ define(function (require, exports, module) {
 
   var DO_TOC = "toc.run";
   var panelHtml = require("text!panel.html");
-  var summaryHtml = require("text!tpl/summary.html");
+  var concatHtml = require("text!tpl/concat.html");
+  var vizHtml = require("text!tpl/viz.html");
   var panel;
-
 
   var tocIcon = $("<a id='toc-toolbar-icon' class='fa fa-align-justify fa-lg' href='#'></a>")
     .appendTo($("#main-toolbar .buttons"));
-
-  function paraSparkline(contents) {
-    contents = contents.replace(/(^#.*)|(^`.*)/gm, ""); // remove headers and comments
-    var paragraphs = contents.split("\n\n");
-    var sparkline = "";
-    paragraphs.forEach(function (paragraph) {
-      var numWords = paragraph.split(/\s+/).length;
-      if (numWords > 2) {
-        var blockWidth = (numWords / 10);
-        if (blockWidth < 2) {
-          blockWidth = 2
-        };
-        var blockClass = "";
-        var firstChar = paragraph.charAt(0);
-        switch (firstChar) {
-        case ">":
-          blockClass = "quote";
-          break;
-        case "*":
-          if (paragraph.charAt(1) == "*") {
-            blockClass = "bold";
-          } else {
-            blockClass = "italic";
-          }
-          break;
-        case "!":
-          blockClass = "image";
-          break;
-        case "-":
-          blockClass = "bullet";
-          break;
-        }
-        sparkline += "<span class='" + blockClass + "' style='width:" + blockWidth + "px' ></span>";
-      }
-    });
-    return sparkline;
-  }
-
-  function getHeadings(contents) {
-    var headings = contents.match(/##[^\n]*?\n/g);
-    if (headings) {
-      for (var i = 0; i < headings.length; i++) {
-        headings[i] = headings[i].replace(/##([^#]*)/, "<b>$1</b>");
-        if (headings[i + 1] && headings[i + 1].indexOf("###") != -1) {
-          headings[i] = headings[i] + " - " + headings[i + 1].replace(/###/, "");
-          headings.splice(i + 1, 1);
-        }
-      }
-    }
-    return headings;
-  }
   
   function parseFile(contents) {
     var data = [];
-    var paragraphs = contents.split("\n\n");
+    var paragraphs = contents.split(/\n\s*\n/);
     paragraphs.forEach(function (paragraph) {
       var thisPara = {};
       paragraph = paragraph.replace(/^\s+|\s+$/g, '');
+      var firstChar = paragraph.charAt(0);
+      switch (firstChar) {
+      case ">":
+        thisPara.type = "quote";
+        break;
+      case "!":
+        thisPara.type = "image";
+        break;
+      case "-":
+        thisPara.type = "bullet";
+        break;
+      default: 
+        thisPara.type = "normal";
+      }
       thisPara.words = paragraph.split(/\s+/).length;
       var parts = paragraph.split("\n");
       if (parts[0].charAt(0) == "#") { 
@@ -100,56 +63,6 @@ define(function (require, exports, module) {
     return data;
   } 
 
-  function createToc(allFiles) {
-    var fileList = "";
-    var mergedContent = "";
-    var totalWords = 0;
-    allFiles.forEach(function (file) {
-      var heading = file.fileName.replace(/\.md/g, "");
-      if (file.fileName.charAt(2) == " ") {
-        fileList += "<tr class='section-heading'>";
-      } else {
-        fileList += "<tr>";
-      }
-      fileList += "<td class='heading'>" + heading + "</td>";
-      if (file.numWords != 0) {
-        fileList += "<td class='numwords'>" + file.numWords + "</td>";
-      } else {
-        fileList += "<td class='numwords zerowords'>" + file.numWords + "</td>";
-      }
-      fileList += "<td class='sparkline'><span class='expected-length'></span>" + paraSparkline(file.fileContents) + "</td>";
-      fileList += "</tr>";
-      mergedContent += file.fileContents;
-      totalWords += file.numWords;
-    });
-    var newContent = "<h3>TABLE OF CONTENTS</h3>";
-    newContent += "<table>";
-    newContent += fileList;
-    newContent += "<td>TOTAL WORDS</td><td class='numwords'>" + totalWords + "</td>";
-    newContent += "</table>";
-    $("#toc").html(newContent);
-  }
-
-  function createSummary(allFiles) {
-    var summary = "";
-    allFiles.forEach(function (file) {
-      if (file.fileName.charAt(2) == " ") {
-        summary += "<h1>" + file.fileName + "</h1>";
-      } else {
-        summary += "<h2>" + file.fileName + "</h2>";
-      }
-      summary += "<ul>";
-      var headings = getHeadings(file.fileContents);
-      if (headings) {
-        headings.forEach(function (heading) {
-          summary += "<li>" + heading + "</li>";
-        });
-      }
-      summary += "</ul>";
-    });
-    $("#summary").html(summary);
-  }
-
   function readFiles(files) {
     var readRequest;
     var batchFunctions = [];
@@ -161,7 +74,8 @@ define(function (require, exports, module) {
         batchFunctions.push(function (batch) {
           file.read(function (success, fileContents, stats) {
             batch.done({
-              fileName: fileName,
+              fileName: fileName.replace(/\.md/g, ""),
+              fileNumber: fileName.match(/^[\d\.]+/)[0],
               fileContents: fileContents,
               numWords: fileContents.replace(/(^#.*)|(^`.*)/gm, "").split(/\s+/).length - 1,
               fileData: parseFile(fileContents)
@@ -174,19 +88,24 @@ define(function (require, exports, module) {
       allFiles.sort(function (a, b) {
         return a.fileName.localeCompare(b.fileName)
       });      
-      createToc(allFiles);
-      createSummary(allFiles);
-      jsRender(allFiles);
+      concat(allFiles);
+      viz(allFiles);
     });
     fileReadsBatch.execute();
   }
     
-  function jsRender(files) {
-    $("#overview-panel").append(summaryHtml);
-    var template = $.templates("#summaryTemplate");
-    var content = template.render(files);
-    $("#jsrender").html(content);    
-    console.log(files);
+  function concat(files) {
+    $("#overview-panel").append(concatHtml);
+    $("#concat").html(
+      $.templates("#concatTemplate").render(files)
+    );    
+  }
+
+  function viz(files) {
+    $("#overview-panel").append(vizHtml);
+    $("#viz").html(
+      $.templates("#vizTemplate").render(files, true)
+    );    
   }
 
   function updatePanel() {
@@ -197,7 +116,6 @@ define(function (require, exports, module) {
     });
   }
   
-
   function _handleFileToc() {
     panel.show();
     updatePanel();
@@ -222,25 +140,20 @@ define(function (require, exports, module) {
     tocIcon.click(function () {
       _handleFileToc();
     });
-    $("#overview-panel #show-toc").click(function () {
-      _handleFileToc();
-      $("#overview-panel .section").hide();
-      $("#overview-panel #toc").show();
-    });
-    $("#overview-panel #show-summary").click(function () {
-      _handleFileToc();
-      $("#overview-panel .section").hide();
-      $("#overview-panel #summary").show();
-    });
     $("#overview-panel #show-diagram").click(function () {
       _handleFileToc();
       $("#overview-panel .section").hide();
       $("#overview-panel #diagram").show();
     });
-    $("#overview-panel #show-jsrender").click(function () {
+    $("#overview-panel #show-concat").click(function () {
       _handleFileToc();
       $("#overview-panel .section").hide();
-      $("#overview-panel #jsrender").show();
+      $("#overview-panel #concat").show();
+    });
+    $("#overview-panel #show-viz").click(function () {
+      _handleFileToc();
+      $("#overview-panel .section").hide();
+      $("#overview-panel #viz").show();
     });
     $("#overview-panel #merge-files").click(function () {
       _merge.mergeFiles();
