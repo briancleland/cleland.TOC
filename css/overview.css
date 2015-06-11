@@ -5,7 +5,8 @@
 }
 
 #overview-panel {
-  background: #eee;
+  background: #fff;
+  font-family: sans-serif;
 }
 
 #overview-panel h1 {
@@ -55,7 +56,7 @@
 
 td {
 /*  background: #eee;*/
-  border-bottom: 1px solid #ddd;
+/*  border-bottom: 1px solid #ddd;*/
   font-size: 80%;
 }
 
@@ -162,6 +163,6 @@ td {
 }
 
 #overview-panel .section {
-  margin: 45px 20px;
+  padding: 45px 20px;
   display: none;
 }

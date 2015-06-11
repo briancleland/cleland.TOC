@@ -1,0 +1,15 @@
+<script id="summaryTemplate" type="text/x-jsrender">
+  <h1 class="file-name" data-path="{{:filePath}}">
+    {{:fileName}} 
+    {{if numWords>0 }}
+      ({{:numWords}})
+    {{/if}}
+  </h1>
+  <div class="subsection">
+    {{for fileData}}
+      {{if body }}
+        <div class="paragraph">{{:head}}</div>
+      {{/if}}
+    {{/for}}
+  </div>
+</script>

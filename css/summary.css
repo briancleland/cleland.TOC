@@ -1,0 +1,21 @@
+#summary {
+  -webkit-column-count: 4;
+}
+
+#summary h1 {
+  font-size: 100%;
+  line-height: 1.5em !important;
+  color: #444 !important;
+  margin: 0; 
+  padding: 0;
+  background: transparent !important;
+  font-weight: bold;
+}
+
+#summary .file-name {
+  cursor: pointer;
+}
+
+#summary .selected {
+  background: yellow !important;
+}

@@ -1,0 +1,37 @@
+#viz {
+  font-size: 11px;
+}
+
+#viz ul {
+  margin: 0;
+}
+
+#viz li {
+/*  width: 80px;*/
+  list-style: none;
+  clear: both;
+}
+
+#viz .heading {
+  width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#viz .numwords {
+/*  display: none;*/
+  width: 25px;
+}
+
+#viz li div {
+  float: left;
+}
+
+#viz .sparkline {
+  padding-top: 6px;
+}
+
+#viz .sparkline span {
+  height: 4px;
+}

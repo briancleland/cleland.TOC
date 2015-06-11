@@ -1,0 +1,35 @@
+#concat {
+  width: 900px;
+  text-align: justify;
+  padding: 20px;
+  background: white;
+}
+
+#concat img {
+/*  height: 200px !important;*/
+}
+
+#concat .subsection {
+  -webkit-column-count: 2;
+  -webkit-column-gap: 30px;
+}
+
+#concat h2 {
+  font-size: 120%;
+  line-height: 1em !important;
+  color: #444 !important;
+  margin: 0; 
+}
+
+#concat h3 {
+  line-height: 12px;
+  background: white;
+  padding: 5px;
+  margin-bottom: 5px;
+  color: #666;
+}
+
+#concat p {
+  font-size: 16px;
+  color: #222;
+}

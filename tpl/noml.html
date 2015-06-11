@@ -1,0 +1,18 @@
+<script id="nomlTemplate" type="text/x-jsrender">
+
+  
+    {{for #data}}
+      <br>
+      {{if fileNumber.length <= 2}} <!-- if section-heading -->
+        {{if fileNumber[0] !="1"}} ]<br> {{/if}} <!-- end previous matrix-section -->
+        <br>[ {{:fileName}} |
+      {{else}}
+          [{{:fileName}}] |
+      {{/if}}        
+    {{/for}}
+    
+   ]<!-- end final matrix-section -->   
+   
+   <br>#zoom: 0.5
+  
+</script>

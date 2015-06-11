@@ -1,10 +1,16 @@
 <script id="concatTemplate" type="text/x-jsrender">
   <h1>{{:fileName}}</h1>
-  <p>Number: {{:fileNumber}}</p>
-  {{for fileData}}
-    <h2>{{:head}} ({{:words}}) ({{:type}})</h2>
-    <h3>{{:subhead}}</h3>
-    <p>{{:body}}</p>
-    <hr>
-  {{/for}}
+  <div class="subsection">
+    <!--<p>Number: {{:fileNumber}}</p>-->
+    {{for fileData}}
+      <div class="paragraph">
+        <h2>{{:head}}</h2>
+        <h3>{{:subhead}}</h3>
+        <p>{{:body}}</p>
+        {{if url }}
+          <img src="{{:url}}">
+        {{/if}}
+      </div>
+    {{/for}}
+  </div>
 </script>

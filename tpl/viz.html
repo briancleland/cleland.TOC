@@ -1,25 +1,30 @@
 <script id="vizTemplate" type="text/x-jsrender">
-  <h3>TABLE OF CONTENTS</h3>
-  <table>
+  <ul>
+  
     {{for #data}}
-      {{if fileNumber.length <= 2}} 
-        <tr class="section-heading">
+      {{if fileNumber.slice(-1) == "."}} 
+        <li class="section-heading">
       {{else}} 
-        <tr>
+        <li>
       {{/if}}
-        <td  class="heading">
+        <div class="heading">
           {{:fileName}} 
-        </td>
-        <td>
+        </div>
+        <div class="numwords">
           {{:numWords}}
-        </td>
-        <td class="sparkline">{{:type}} 
+        </div>
+        <div class="sparkline">{{:type}} 
           {{for fileData}}
-            <span class="{{:type}}" style="width: calc({{:words}}px / 10)"></span>
+            <span class="{{:type}}" style="width: calc({{:words}}px / 40)"></span>
           {{/for}}
-        </td>
-      </tr>
+        </div>
+      </li>
     {{/for}}
-    <td>TOTAL WORDS</td><td class='numwords'></td>
-  </table>
+    <li><br></li>
+    <li>
+      <div class="heading">TOTAL WORDS</div>
+      <div class="numwords">{{:~totalWords}}</div>
+    </li>
+    
+  </ul>
 </script>

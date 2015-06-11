@@ -6,10 +6,12 @@ define(function (require, exports, module) {
 
   require("lib/batch");
   require("lib/jsrender.min");
+  require("lib/naturalSort");
   var _merge = require("lib/merge");
 
   var
     CommandManager = brackets.getModule("command/CommandManager"),
+    Commands = brackets.getModule("command/Commands"),
     EditorManager = brackets.getModule("editor/EditorManager"),
     DocumentManager = brackets.getModule("document/DocumentManager"),
     ProjectManager = brackets.getModule("project/ProjectManager"),
@@ -22,8 +24,11 @@ define(function (require, exports, module) {
 
   var DO_TOC = "toc.run";
   var panelHtml = require("text!panel.html");
+  var summaryHtml = require("text!tpl/summary.html");
   var concatHtml = require("text!tpl/concat.html");
   var vizHtml = require("text!tpl/viz.html");
+  var viz2Html = require("text!tpl/viz2.html");
+  var nomlHtml = require("text!tpl/noml.html");
   var panel;
 
   var tocIcon = $("<a id='toc-toolbar-icon' class='fa fa-align-justify fa-lg' href='#'></a>")
@@ -42,6 +47,7 @@ define(function (require, exports, module) {
         break;
       case "!":
         thisPara.type = "image";
+        thisPara.url = paragraph.match(/\]\((.*)\)/)[1];
         break;
       case "-":
         thisPara.type = "bullet";
@@ -51,8 +57,9 @@ define(function (require, exports, module) {
       }
       thisPara.words = paragraph.split(/\s+/).length;
       var parts = paragraph.split("\n");
-      if (parts[0].charAt(0) == "#") { 
-        thisPara.head = parts.shift(); 
+      if (parts[0].charAt(0) == "#") {
+        thisPara.head = parts.shift();
+        thisPara.head = thisPara.head.replace(/#/g,"").trim();
         if (parts[0] && parts[0].charAt(0) == "#") { 
           thisPara.subhead = parts.shift(); 
         }
@@ -78,20 +85,38 @@ define(function (require, exports, module) {
               fileNumber: fileName.match(/^[\d\.]+/)[0],
               fileContents: fileContents,
               numWords: fileContents.replace(/(^#.*)|(^`.*)/gm, "").split(/\s+/).length - 1,
-              fileData: parseFile(fileContents)
+              fileData: parseFile(fileContents),
+              filePath: file._path
             });
           });
         });
       }
     });
     var fileReadsBatch = new Batch(batchFunctions, function (allFiles) {
-      allFiles.sort(function (a, b) {
-        return a.fileName.localeCompare(b.fileName)
-      });      
+      allFiles.sort(naturalSort);
+      summary(allFiles);
       concat(allFiles);
       viz(allFiles);
+      viz2(allFiles);
+      noml(allFiles);
     });
     fileReadsBatch.execute();
+  }
+    
+  function summary(files) {
+    $("#overview-panel").append(summaryHtml);
+    $("#summary").html(
+      $.templates("#summaryTemplate").render(files)
+    );    
+    $("#summary .file-name").click(function () {
+      console.log(path);
+      $("#summary .file-name").removeClass("selected");
+      $(this).addClass("selected");
+      var path = $(this).data("path");
+      CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
+        fullPath: path
+      });
+    })  
   }
     
   function concat(files) {
@@ -103,8 +128,28 @@ define(function (require, exports, module) {
 
   function viz(files) {
     $("#overview-panel").append(vizHtml);
+    var file, totalWords = 0;
+    for (file of files) {
+      totalWords += file.numWords;
+    }
+    console.log(files);
     $("#viz").html(
-      $.templates("#vizTemplate").render(files, true)
+//      $.templates("#vizTemplate").render(files, true)
+      $.templates("#vizTemplate").render([files], {totalWords: totalWords})
+    );    
+  }
+
+  function viz2(files) {
+    $("#overview-panel").append(viz2Html);
+    $("#viz2").html(
+      $.templates("#viz2Template").render(files, true)
+    );    
+  }
+
+  function noml(files) {
+    $("#overview-panel").append(nomlHtml);
+    $("#noml").html(
+      $.templates("#nomlTemplate").render(files, true)
     );    
   }
 
@@ -131,6 +176,10 @@ define(function (require, exports, module) {
     var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
     viewMenu.addMenuItem(DO_TOC);
     ExtensionUtils.loadStyleSheet(module, "css/overview.css");
+    ExtensionUtils.loadStyleSheet(module, "css/viz.css");
+    ExtensionUtils.loadStyleSheet(module, "css/matrix.css");
+    ExtensionUtils.loadStyleSheet(module, "css/concat.css");
+    ExtensionUtils.loadStyleSheet(module, "css/summary.css");
     ExtensionUtils.loadStyleSheet(module, "css/fa/css/font-awesome.css");
     panel = PanelManager.createBottomPanel(DO_TOC, $(panelHtml), 300);
     DocumentManager.on('documentSaved', updatePanel);
@@ -145,6 +194,11 @@ define(function (require, exports, module) {
       $("#overview-panel .section").hide();
       $("#overview-panel #diagram").show();
     });
+    $("#overview-panel #show-summary").click(function () {
+      _handleFileToc();
+      $("#overview-panel .section").hide();
+      $("#overview-panel #summary").show();
+    });
     $("#overview-panel #show-concat").click(function () {
       _handleFileToc();
       $("#overview-panel .section").hide();
@@ -154,6 +208,16 @@ define(function (require, exports, module) {
       _handleFileToc();
       $("#overview-panel .section").hide();
       $("#overview-panel #viz").show();
+    });
+    $("#overview-panel #show-viz2").click(function () {
+      _handleFileToc();
+      $("#overview-panel .section").hide();
+      $("#overview-panel #viz2").show();
+    });
+    $("#overview-panel #show-noml").click(function () {
+      _handleFileToc();
+      $("#overview-panel .section").hide();
+      $("#overview-panel #noml").show();
     });
     $("#overview-panel #merge-files").click(function () {
       _merge.mergeFiles();

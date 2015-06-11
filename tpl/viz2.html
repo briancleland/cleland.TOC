@@ -1,0 +1,33 @@
+<script id="viz2Template" type="text/x-jsrender">
+
+  <h3>MATRIX OF CONTENTS</h3>
+  <div id="matrix">
+  
+    {{for #data}}
+  
+      {{if fileNumber.length <= 2}} 
+        {{if fileNumber[0] !="1"}} </div> {{/if}} <!-- end previous matrix-section -->
+        <div class="matrix-section">
+      {{/if}}
+      
+        <div class="matrix-subsection">
+        
+          {{if fileNumber.length <= 2}}
+            <div class="section-heading">{{:fileName}}</div>
+          {{else}}
+            <div class="heading">{{:fileName}}</div>
+          {{/if}}
+
+          <div class="sparkline">{{:type}} 
+            {{for fileData}}
+              <span class="{{:type}}" style="width: calc({{:words}}px / 20)"></span>
+            {{/for}}
+          </div>
+        </div>
+            
+    {{/for}}
+    
+    </div><!-- end final matrix-section -->    
+  </div><!-- end matrix -->
+  
+</script>
